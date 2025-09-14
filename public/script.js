@@ -295,12 +295,12 @@ class RouteManager {
             this.openInGoogleMaps();
         });
 
-        document.getElementById('open-waze').addEventListener('click', () => {
-            this.openInWaze();
-        });
-
         document.getElementById('copy-route-link').addEventListener('click', () => {
             this.copyRouteLink();
+        });
+
+        document.getElementById('test-google-maps-url').addEventListener('click', () => {
+            this.testGoogleMapsUrl();
         });
     }
 
@@ -687,6 +687,12 @@ class RouteManager {
             return;
         }
 
+        // Validação adicional: verificar se o raio não é muito pequeno
+        if (parseInt(raio) < 5) {
+            alert('⚠️ Raio muito pequeno! Recomendamos usar pelo menos 5km para encontrar cidades próximas à rota.');
+            return;
+        }
+
         this.showLoading();
 
         try {
@@ -716,8 +722,26 @@ class RouteManager {
             } else {
                 if (response.status === 429) {
                     alert('Muitas requisições simultâneas. Aguarde alguns segundos e tente novamente com menos cidades.');
+                } else if (response.status === 400) {
+                    // Erro específico para quando não há cidades no raio
+                    const errorMessage = result.error || 'Erro na requisição';
+                    const sugestao = result.sugestao || '';
+                    
+                    // Sugerir raio maior
+                    const raioAtual = parseInt(document.getElementById('raio').value);
+                    const novoRaio = Math.min(raioAtual * 2, 100); // Dobrar o raio, máximo 100km
+                    
+                    const confirmar = confirm(`⚠️ ${errorMessage}\n\n💡 ${sugestao}\n\n🔄 Deseja tentar com raio de ${novoRaio}km?`);
+                    
+                    if (confirmar) {
+                        document.getElementById('raio').value = novoRaio;
+                        // Tentar novamente automaticamente
+                        setTimeout(() => {
+                            this.optimizeRoute();
+                        }, 1000);
+                    }
                 } else {
-                    alert('Erro: ' + result.error);
+                    alert('Erro: ' + (result.error || 'Erro desconhecido'));
                 }
             }
         } catch (error) {
@@ -745,17 +769,31 @@ class RouteManager {
     }
 
     displayResults(result) {
+        // Debug: Log do resultado recebido
+        console.log('Result received:', result);
+        console.log('Distance:', result.distancia_km);
+        console.log('Duration:', result.duracao_min);
+        
         const resultsContent = document.getElementById('results-content');
+        
+        // Verificar e formatar valores
+        const distancia = result.distancia_km ? 
+            (typeof result.distancia_km === 'number' ? result.distancia_km.toFixed(1) + ' km' : result.distancia_km) : 
+            'N/A';
+        
+        const duracao = result.duracao_min ? 
+            (typeof result.duracao_min === 'number' ? Math.round(result.duracao_min) + ' min' : result.duracao_min) : 
+            'N/A';
         
         resultsContent.innerHTML = `
             <div class="route-info">
                 <div class="info-card">
                     <h4>Distância Total</h4>
-                    <p>${result.distancia_km ? result.distancia_km.toFixed(1) + ' km' : 'N/A'}</p>
+                    <p>${distancia}</p>
                 </div>
                 <div class="info-card">
                     <h4>Duração Estimada</h4>
-                    <p>${result.duracao_min ? Math.round(result.duracao_min) + ' min' : 'N/A'}</p>
+                    <p>${duracao}</p>
                 </div>
                 <div class="info-card">
                     <h4>Cidades Incluídas</h4>
@@ -1274,63 +1312,75 @@ class RouteManager {
             const origem = this.optimizedRoute.origem;
             const destino = this.optimizedRoute.destino;
 
+            console.log('Dados da rota para Google Maps:', {
+                waypoints,
+                origem,
+                destino
+            });
+
             if (!origem || !destino) {
                 alert('Dados de origem ou destino não disponíveis');
                 return;
             }
 
-            // Construir URL do Google Maps
-            let googleMapsUrl = `https://www.google.com/maps/dir/`;
-            
-            // Adicionar origem
-            googleMapsUrl += `${origem.lat},${origem.lng}/`;
-            
-            // Adicionar waypoints (paradas)
-            waypoints.forEach(city => {
-                if (city !== 'ORIGEM' && city !== 'DESTINO') {
-                    // Para waypoints, usar o formato de parada
-                    googleMapsUrl += `/${city}, Paraná, Brasil/`;
-                }
-            });
-            
-            // Adicionar destino
-            googleMapsUrl += `${destino.lat},${destino.lng}/`;
+            // Filtrar waypoints válidos
+            const validWaypoints = waypoints.filter(city => 
+                city && city !== 'ORIGEM' && city !== 'DESTINO' && city.trim() !== ''
+            );
 
-            // Abrir em nova aba
-            window.open(googleMapsUrl, '_blank');
+            // Construir URL do Google Maps - usar formato mais simples e confiável
+            let googleMapsUrl;
+            
+            if (validWaypoints.length === 0) {
+                // Apenas origem e destino
+                googleMapsUrl = `https://www.google.com/maps/dir/${origem.lat},${origem.lng}/${destino.lat},${destino.lng}`;
+            } else {
+                // Com waypoints - tentar usar coordenadas se disponíveis, senão usar nomes
+                const waypointCoords = [];
+                const waypointNames = [];
+                
+                // Tentar obter coordenadas dos waypoints (se disponíveis no raw data)
+                if (this.optimizedRoute.raw && this.optimizedRoute.raw.steps) {
+                    this.optimizedRoute.raw.steps.forEach(step => {
+                        if (step.type === 'job' && step.location) {
+                            waypointCoords.push(`${step.location[1]},${step.location[0]}`);
+                        }
+                    });
+                }
+                
+                // Se temos coordenadas, usar elas; senão usar nomes das cidades
+                if (waypointCoords.length > 0) {
+                    const waypoints = waypointCoords.slice(0, 8).join('|');
+                    googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origem.lat},${origem.lng}&destination=${destino.lat},${destino.lng}&waypoints=${waypoints}`;
+                } else {
+                    // Fallback para nomes das cidades
+                    const waypoints = validWaypoints.slice(0, 8).map(city => 
+                        `${city}, Paraná, Brasil`
+                    ).join('|');
+                    
+                    googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origem.lat},${origem.lng}&destination=${destino.lat},${destino.lng}&waypoints=${encodeURIComponent(waypoints)}`;
+                }
+            }
+
+            console.log('URL do Google Maps gerada:', googleMapsUrl);
+
+            // Validar URL antes de abrir
+            try {
+                new URL(googleMapsUrl);
+                window.open(googleMapsUrl, '_blank');
+            } catch (urlError) {
+                console.error('URL inválida gerada:', urlError);
+                // Fallback: abrir apenas com origem e destino
+                const fallbackUrl = `https://www.google.com/maps/dir/${origem.lat},${origem.lng}/${destino.lat},${destino.lng}`;
+                console.log('Usando URL de fallback:', fallbackUrl);
+                window.open(fallbackUrl, '_blank');
+            }
         } catch (error) {
             console.error('Erro ao abrir no Google Maps:', error);
-            alert('Erro ao abrir no Google Maps');
+            alert('Erro ao abrir no Google Maps: ' + error.message);
         }
     }
 
-    openInWaze() {
-        if (!this.optimizedRoute) {
-            alert('Nenhuma rota otimizada disponível');
-            return;
-        }
-
-        try {
-            const origem = this.optimizedRoute.origem;
-            const destino = this.optimizedRoute.destino;
-
-            if (!origem || !destino) {
-                alert('Dados de origem ou destino não disponíveis');
-                return;
-            }
-
-            // Construir URL do Waze
-            // Waze usa formato: waze://ul?ll=lat,lng&navigate=yes
-            // Para múltiplas paradas, usar o formato de navegação
-            let wazeUrl = `https://waze.com/ul?ll=${destino.lat},${destino.lng}&navigate=yes`;
-            
-            // Abrir em nova aba
-            window.open(wazeUrl, '_blank');
-        } catch (error) {
-            console.error('Erro ao abrir no Waze:', error);
-            alert('Erro ao abrir no Waze');
-        }
-    }
 
     async copyRouteLink() {
         if (!this.optimizedRoute) {
@@ -1383,6 +1433,96 @@ class RouteManager {
         } catch (error) {
             console.error('Erro ao copiar rota:', error);
             alert('Erro ao copiar rota. Tente novamente.');
+        }
+    }
+
+    testGoogleMapsUrl() {
+        if (!this.optimizedRoute) {
+            alert('Nenhuma rota otimizada disponível');
+            return;
+        }
+
+        try {
+            const waypoints = this.optimizedRoute.roteiro || [];
+            const origem = this.optimizedRoute.origem;
+            const destino = this.optimizedRoute.destino;
+
+            console.log('=== TESTE DE URL DO GOOGLE MAPS ===');
+            console.log('Dados da rota:', {
+                waypoints,
+                origem,
+                destino,
+                raw: this.optimizedRoute.raw
+            });
+
+            if (!origem || !destino) {
+                alert('Dados de origem ou destino não disponíveis');
+                return;
+            }
+
+            // Filtrar waypoints válidos
+            const validWaypoints = waypoints.filter(city => 
+                city && city !== 'ORIGEM' && city !== 'DESTINO' && city.trim() !== ''
+            );
+
+            console.log('Waypoints válidos:', validWaypoints);
+
+            // Testar diferentes formatos de URL
+            const testUrls = [];
+
+            // Formato 1: Apenas origem e destino
+            testUrls.push({
+                name: 'Apenas origem e destino',
+                url: `https://www.google.com/maps/dir/${origem.lat},${origem.lng}/${destino.lat},${destino.lng}`
+            });
+
+            // Formato 2: Com waypoints usando nomes
+            if (validWaypoints.length > 0) {
+                const waypoints = validWaypoints.slice(0, 8).map(city => 
+                    `${city}, Paraná, Brasil`
+                ).join('|');
+                
+                testUrls.push({
+                    name: 'Com waypoints (nomes)',
+                    url: `https://www.google.com/maps/dir/?api=1&origin=${origem.lat},${origem.lng}&destination=${destino.lat},${destino.lng}&waypoints=${encodeURIComponent(waypoints)}`
+                });
+            }
+
+            // Formato 3: Com waypoints usando coordenadas (se disponíveis)
+            if (this.optimizedRoute.raw && this.optimizedRoute.raw.steps) {
+                const waypointCoords = [];
+                this.optimizedRoute.raw.steps.forEach(step => {
+                    if (step.type === 'job' && step.location) {
+                        waypointCoords.push(`${step.location[1]},${step.location[0]}`);
+                    }
+                });
+
+                if (waypointCoords.length > 0) {
+                    const waypoints = waypointCoords.slice(0, 8).join('|');
+                    testUrls.push({
+                        name: 'Com waypoints (coordenadas)',
+                        url: `https://www.google.com/maps/dir/?api=1&origin=${origem.lat},${origem.lng}&destination=${destino.lat},${destino.lng}&waypoints=${waypoints}`
+                    });
+                }
+            }
+
+            // Exibir URLs de teste
+            console.log('URLs de teste geradas:');
+            testUrls.forEach((test, index) => {
+                console.log(`${index + 1}. ${test.name}:`);
+                console.log(`   ${test.url}`);
+            });
+
+            // Mostrar no alerta
+            const urlList = testUrls.map((test, index) => 
+                `${index + 1}. ${test.name}\n   ${test.url}`
+            ).join('\n\n');
+
+            alert(`URLs de teste geradas:\n\n${urlList}\n\nVerifique o console para mais detalhes.`);
+
+        } catch (error) {
+            console.error('Erro no teste de URL:', error);
+            alert('Erro no teste: ' + error.message);
         }
     }
 }

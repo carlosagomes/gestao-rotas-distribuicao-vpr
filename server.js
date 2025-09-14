@@ -131,12 +131,40 @@ app.post("/roteiro", async (req, res) => {
     // 5) Filtrar cidades que caem dentro do buffer
     const candidatos = pontos.filter(p => turf.booleanPointInPolygon(p, buffer));
 
+    // Debug: Log informações sobre o filtro
+    console.log(`Filtro de cidades no raio de ${raio_km}km:`);
+    console.log(`- Total de pontos geocodificados: ${pontos.length}`);
+    console.log(`- Candidatos encontrados no raio: ${candidatos.length}`);
+    console.log(`- Cidades candidatas:`, candidatos.map(p => p.properties.nome));
+
+    // Verificar se há candidatos no raio selecionado
+    if (candidatos.length === 0) {
+      console.log(`❌ Nenhuma cidade encontrada no raio de ${raio_km}km`);
+      return res.status(400).json({ 
+        error: `Nenhuma cidade encontrada no raio de ${raio_km}km da rota entre ${origem} e ${destino}. Tente aumentar o raio de busca ou selecionar cidades mais próximas da rota.`,
+        sugestao: "Aumente o raio de busca ou selecione cidades mais próximas da rota principal.",
+        debug: {
+          raio_km,
+          total_pontos: pontos.length,
+          candidatos_encontrados: candidatos.length
+        }
+      });
+    }
+
     // 6) Criar payload para ORS Optimization API
     const jobs = candidatos.map((p, idx) => ({
       id: idx + 1,
       location: p.geometry.coordinates,
       description: p.properties.nome
     }));
+
+    // Verificar se há jobs válidos
+    if (jobs.length === 0) {
+      return res.status(400).json({ 
+        error: `Nenhuma cidade válida encontrada no raio de ${raio_km}km da rota entre ${origem} e ${destino}.`,
+        sugestao: "Tente aumentar o raio de busca ou verificar se as cidades selecionadas estão próximas da rota principal."
+      });
+    }
 
     const body = {
       jobs,
@@ -167,15 +195,57 @@ app.post("/roteiro", async (req, res) => {
       if (s.type === "end") return "DESTINO";
       return s.type;
     });
+    
     const rota = data.routes[0];
+    
+    // Debug: Log da estrutura da resposta da API
+    console.log('API Response structure:', JSON.stringify(data, null, 2));
+    console.log('Route summary:', rota.summary);
+    console.log('Route distance:', rota.distance);
+    console.log('Route duration:', rota.duration);
+    
+    // Calcular distância e duração - tentar diferentes estruturas possíveis
+    let distancia_km = null;
+    let duracao_min = null;
+    
+    // Tentar diferentes estruturas da resposta da API
+    if (rota.summary) {
+        distancia_km = rota.summary.distance ? rota.summary.distance / 1000 : null;
+        duracao_min = rota.summary.duration ? rota.summary.duration / 60 : null;
+    } else if (rota.distance !== undefined) {
+        distancia_km = rota.distance / 1000;
+    } else if (rota.duration !== undefined) {
+        duracao_min = rota.duration / 60;
+    } else if (rota.properties) {
+        distancia_km = rota.properties.distance ? rota.properties.distance / 1000 : null;
+        duracao_min = rota.properties.duration ? rota.properties.duration / 60 : null;
+    }
+    
+    // Se ainda não encontrou, tentar calcular manualmente
+    if (!distancia_km && rota.steps && rota.steps.length > 0) {
+        let totalDistance = 0;
+        let totalDuration = 0;
+        
+        for (const step of rota.steps) {
+            if (step.distance) totalDistance += step.distance;
+            if (step.duration) totalDuration += step.duration;
+        }
+        
+        if (totalDistance > 0) distancia_km = totalDistance / 1000;
+        if (totalDuration > 0) duracao_min = totalDuration / 60;
+    }
+    
+    console.log('Calculated distance:', distancia_km);
+    console.log('Calculated duration:', duracao_min);
+    
     res.json({
         origem: o,
         destino: d,
         raio_km,
         candidatos: candidatos.map(p => p.properties.nome),
         roteiro: steps,
-        distancia_km: rota.summary ? rota.summary.distance / 1000 : (rota.distance ? rota.distance / 1000 : null),
-        duracao_min: rota.summary ? rota.summary.duration / 60 : (rota.duration ? rota.duration / 60 : null),
+        distancia_km: distancia_km,
+        duracao_min: duracao_min,
         raw: rota // opcional, pra debug
       });
   } catch (e) {
