@@ -9,6 +9,7 @@ class RouteManager {
         this.savedRoutes = [];
         this.selectedCities = new Set();
         this.showNumbers = true; // Por padrão, mostrar números
+        this.useRealRoute = true; // Por padrão, usar rota real
         this.currentRoute = null; // Armazenar rota atual para re-renderizar
         this.init();
     }
@@ -103,6 +104,11 @@ class RouteManager {
         // Botão de alternar numeração
         document.getElementById('toggle-numbers').addEventListener('click', () => {
             this.toggleNumbers();
+        });
+
+        // Botão de alternar tipo de rota
+        document.getElementById('toggle-route-type').addEventListener('click', () => {
+            this.toggleRouteType();
         });
     }
 
@@ -526,26 +532,101 @@ class RouteManager {
                 this.markers.push(destMarker);
             }
 
-            // Desenhar linha conectando as paradas em sequência
+            // Desenhar rota seguindo estradas reais ou linha reta
             if (routeCoordinates.length > 1) {
-                const routeLine = L.polyline(routeCoordinates, {
-                    color: '#667eea',
-                    weight: 4,
-                    opacity: 0.8,
-                    dashArray: '10, 10'
-                }).addTo(this.routeLayer);
-                
-                // Adicionar popup na linha da rota
-                routeLine.bindPopup(`
-                    <div style="text-align: center;">
-                        <strong>🚛 Rota Otimizada</strong><br>
-                        <small>${routeCoordinates.length - 2} paradas + origem e destino</small>
-                    </div>
-                `);
+                if (this.useRealRoute) {
+                    await this.drawRealRoute(routeCoordinates);
+                } else {
+                    this.drawStraightLine(routeCoordinates);
+                }
             }
         }
 
         this.fitMapToMarkers();
+    }
+
+    async drawRealRoute(waypoints) {
+        try {
+            // Preparar waypoints para a API
+            const waypointData = waypoints.map(coord => ({
+                lng: coord[1],
+                lat: coord[0]
+            }));
+
+            const response = await fetch('/route-waypoints', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    waypoints: waypointData
+                })
+            });
+
+            if (response.ok) {
+                const routeData = await response.json();
+                
+                if (routeData.features && routeData.features.length > 0) {
+                    const route = routeData.features[0];
+                    const coordinates = route.geometry.coordinates;
+                    
+                    // Converter coordenadas para formato [lat, lng] do Leaflet
+                    const leafletCoords = coordinates.map(coord => [coord[1], coord[0]]);
+                    
+                    // Criar polyline com a rota real
+                    const routeLine = L.polyline(leafletCoords, {
+                        color: '#667eea',
+                        weight: 5,
+                        opacity: 0.8,
+                        smoothFactor: 1
+                    }).addTo(this.routeLayer);
+                    
+                    // Adicionar popup na linha da rota
+                    const distance = route.properties.summary ? 
+                        (route.properties.summary.distance / 1000).toFixed(1) : 'N/A';
+                    const duration = route.properties.summary ? 
+                        Math.round(route.properties.summary.duration / 60) : 'N/A';
+                    
+                    routeLine.bindPopup(`
+                        <div style="text-align: center;">
+                            <strong>🚛 Rota Otimizada</strong><br>
+                            <small>${waypoints.length - 2} paradas + origem e destino</small><br>
+                            <strong>Distância:</strong> ${distance} km<br>
+                            <strong>Duração:</strong> ${duration} min
+                        </div>
+                    `);
+                    
+                    console.log('Rota real desenhada com sucesso');
+                } else {
+                    // Fallback para linha reta se a API falhar
+                    this.drawStraightLine(waypoints);
+                }
+            } else {
+                console.warn('Erro ao calcular rota real, usando linha reta');
+                this.drawStraightLine(waypoints);
+            }
+        } catch (error) {
+            console.warn('Erro ao desenhar rota real:', error);
+            this.drawStraightLine(waypoints);
+        }
+    }
+
+    drawStraightLine(waypoints) {
+        // Fallback para linha reta
+        const routeLine = L.polyline(waypoints, {
+            color: '#667eea',
+            weight: 4,
+            opacity: 0.8,
+            dashArray: '10, 10'
+        }).addTo(this.routeLayer);
+        
+        routeLine.bindPopup(`
+            <div style="text-align: center;">
+                <strong>🚛 Rota Otimizada</strong><br>
+                <small>${waypoints.length - 2} paradas + origem e destino</small><br>
+                <em>Linha reta (rota real indisponível)</em>
+            </div>
+        `);
     }
 
     async addCityMarkerWithGeocoding(cityName, routeNumber) {
@@ -668,6 +749,26 @@ class RouteManager {
             button.classList.add('btn-secondary');
         } else {
             button.innerHTML = '<i class="fas fa-eye-slash"></i> Ocultar Números';
+            button.classList.remove('btn-secondary');
+            button.classList.add('btn-primary');
+        }
+        
+        // Re-renderizar mapa se houver rota atual
+        if (this.currentRoute) {
+            this.displayRouteOnMap(this.currentRoute);
+        }
+    }
+
+    toggleRouteType() {
+        this.useRealRoute = !this.useRealRoute;
+        const button = document.getElementById('toggle-route-type');
+        
+        if (this.useRealRoute) {
+            button.innerHTML = '<i class="fas fa-road"></i> Rota Real';
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-secondary');
+        } else {
+            button.innerHTML = '<i class="fas fa-arrows-alt-h"></i> Linha Reta';
             button.classList.remove('btn-secondary');
             button.classList.add('btn-primary');
         }

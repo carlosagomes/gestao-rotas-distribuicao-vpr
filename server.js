@@ -93,6 +93,20 @@ async function routeLine(origin, dest) {
   return data;
 }
 
+async function routeWithWaypoints(waypoints) {
+  const body = {
+    coordinates: waypoints,
+    instructions: false,
+    format: "geojson"
+  };
+  const { data } = await axios.post(
+    "https://api.openrouteservice.org/v2/directions/driving-car/geojson",
+    body,
+    { headers: { Authorization: ORS_KEY, "Content-Type": "application/json" } }
+  );
+  return data;
+}
+
 app.post("/roteiro", async (req, res) => {
   try {
     const { origem = "Maringá, PR", destino = "Paranavaí, PR", cidades = [], raio_km = 20 } = req.body;
@@ -279,6 +293,40 @@ app.get("/geocode/:cidade", async (req, res) => {
     
     res.json(geo);
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint para calcular rota com waypoints seguindo estradas
+app.post("/route-waypoints", async (req, res) => {
+  try {
+    const { waypoints } = req.body;
+    
+    if (!waypoints || waypoints.length < 2) {
+      return res.status(400).json({ error: "Pelo menos 2 waypoints são necessários" });
+    }
+
+    // Geocodificar waypoints se necessário
+    const geocodedWaypoints = await Promise.all(
+      waypoints.map(async (wp) => {
+        if (typeof wp === 'string') {
+          const geo = await geocode(`${wp}, PR`);
+          return geo ? [geo.lng, geo.lat] : null;
+        }
+        return [wp.lng, wp.lat];
+      })
+    );
+
+    const validWaypoints = geocodedWaypoints.filter(Boolean);
+    
+    if (validWaypoints.length < 2) {
+      return res.status(400).json({ error: "Waypoints inválidos" });
+    }
+
+    const routeData = await routeWithWaypoints(validWaypoints);
+    res.json(routeData);
+  } catch (error) {
+    console.error('Erro ao calcular rota:', error);
     res.status(500).json({ error: error.message });
   }
 });
