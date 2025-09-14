@@ -158,6 +158,8 @@ class RouteManager {
             region: '',
             alphabet: ''
         };
+        this.isMobile = window.innerWidth <= 768; // Detectar se é mobile
+        this.mapVisible = false; // Estado do mapa no mobile
         this.init();
     }
 
@@ -205,6 +207,9 @@ class RouteManager {
 
         // Adicionar camada para rotas
         this.routeLayer = L.layerGroup().addTo(this.map);
+        
+        // Configurar visibilidade inicial do mapa
+        this.updateMapVisibility();
     }
 
     initEventListeners() {
@@ -301,6 +306,17 @@ class RouteManager {
 
         document.getElementById('test-google-maps-url').addEventListener('click', () => {
             this.testGoogleMapsUrl();
+        });
+
+        // Botão de toggle do mapa no mobile
+        document.getElementById('toggle-map-mobile').addEventListener('click', () => {
+            this.toggleMapVisibility();
+        });
+
+        // Detectar mudanças de tamanho da tela
+        window.addEventListener('resize', () => {
+            this.isMobile = window.innerWidth <= 768;
+            this.updateMapVisibility();
         });
     }
 
@@ -719,6 +735,7 @@ class RouteManager {
                 this.optimizedRoute = result; // Armazenar rota otimizada para navegação externa
                 await this.displayRouteOnMap(result);
                 this.showExternalNavButtons(); // Mostrar botões de navegação externa
+                this.showMapOnRouteReady(); // Mostrar mapa quando rota estiver pronta no mobile
             } else {
                 if (response.status === 429) {
                     alert('Muitas requisições simultâneas. Aguarde alguns segundos e tente novamente com menos cidades.');
@@ -1523,6 +1540,49 @@ class RouteManager {
         } catch (error) {
             console.error('Erro no teste de URL:', error);
             alert('Erro no teste: ' + error.message);
+        }
+    }
+
+    toggleMapVisibility() {
+        this.mapVisible = !this.mapVisible;
+        this.updateMapVisibility();
+    }
+
+    updateMapVisibility() {
+        const mapContainer = document.getElementById('map-container');
+        const toggleBtn = document.getElementById('toggle-map-mobile');
+        const toggleText = toggleBtn.querySelector('.toggle-text');
+        
+        if (this.isMobile) {
+            // No mobile, controlar visibilidade
+            if (this.mapVisible) {
+                mapContainer.classList.remove('hide-map');
+                toggleText.textContent = 'Esconder Mapa';
+                toggleBtn.innerHTML = '<i class="fas fa-eye-slash"></i> <span class="toggle-text">Esconder Mapa</span>';
+                
+                // Redimensionar mapa após mostrar
+                setTimeout(() => {
+                    if (this.map) {
+                        this.map.invalidateSize();
+                    }
+                }, 300);
+            } else {
+                mapContainer.classList.add('hide-map');
+                toggleText.textContent = 'Mostrar Mapa';
+                toggleBtn.innerHTML = '<i class="fas fa-map"></i> <span class="toggle-text">Mostrar Mapa</span>';
+            }
+        } else {
+            // No desktop, sempre mostrar o mapa
+            mapContainer.classList.remove('hide-map');
+            toggleBtn.style.display = 'none';
+        }
+    }
+
+    // Mostrar mapa automaticamente quando rota estiver pronta no mobile
+    showMapOnRouteReady() {
+        if (this.isMobile && !this.mapVisible) {
+            this.mapVisible = true;
+            this.updateMapVisibility();
         }
     }
 }
