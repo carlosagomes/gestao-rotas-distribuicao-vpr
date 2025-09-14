@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Roteirização - VPR</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-route"></i> Sistema de Roteirização</h1>
+            <p>Gestão de Rotas de Distribuição - VPR</p>
+        </header>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="route-optimization">
+                        <i class="fas fa-route"></i> Otimização de Rotas
+                    </button>
+                    <button class="tab-btn" data-tab="manual-routes">
+                        <i class="fas fa-plus"></i> Rotas Manuais
+                    </button>
+                    <button class="tab-btn" data-tab="saved-routes">
+                        <i class="fas fa-save"></i> Rotas Salvas
+                    </button>
+                </div>
+
+                <!-- Tab: Route Optimization -->
+                <div class="tab-content active" id="route-optimization">
+                    <div class="form-section">
+                        <h3>Configuração da Rota</h3>
+                        <div class="form-group">
+                            <label for="origem">Origem:</label>
+                            <div class="autocomplete-container">
+                                <input type="text" id="origem" value="Maringá, PR" placeholder="Digite a cidade de origem" autocomplete="off">
+                                <div id="origem-suggestions" class="suggestions-dropdown"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="destino">Destino:</label>
+                            <div class="autocomplete-container">
+                                <input type="text" id="destino" value="Paranavaí, PR" placeholder="Digite a cidade de destino" autocomplete="off">
+                                <div id="destino-suggestions" class="suggestions-dropdown"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="raio">Raio de Busca (km):</label>
+                            <input type="number" id="raio" value="20" min="5" max="100">
+                        </div>
+                        <button id="otimizar-btn" class="btn btn-primary">
+                            <i class="fas fa-calculator"></i> Otimizar Rota
+                        </button>
+                    </div>
+
+                    <div class="cities-section">
+                        <h3>Cidades do Paraná</h3>
+                        <div id="city-counter" class="city-counter">0/20 cidades selecionadas</div>
+                        <div class="city-controls">
+                            <button id="select-all-cities" class="btn btn-secondary btn-small">
+                                <i class="fas fa-check-square"></i> Selecionar Todas
+                            </button>
+                            <button id="deselect-all-cities" class="btn btn-secondary btn-small">
+                                <i class="fas fa-square"></i> Desmarcar Todas
+                            </button>
+                        </div>
+                        <div class="cities-grid" id="cities-grid">
+                            <!-- Cidades serão carregadas dinamicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Manual Routes -->
+                <div class="tab-content" id="manual-routes">
+                    <div class="form-section">
+                        <h3>Adicionar Rota Manual</h3>
+                        <div class="form-group">
+                            <label for="route-name">Nome da Rota:</label>
+                            <input type="text" id="route-name" placeholder="Ex: Rota Norte - Semanal">
+                        </div>
+                        <div class="form-group">
+                            <label for="route-origin">Origem:</label>
+                            <input type="text" id="route-origin" placeholder="Cidade de origem">
+                        </div>
+                        <div class="form-group">
+                            <label for="route-destination">Destino:</label>
+                            <input type="text" id="route-destination" placeholder="Cidade de destino">
+                        </div>
+                        <div class="form-group">
+                            <label for="route-cities">Cidades da Rota (uma por linha):</label>
+                            <textarea id="route-cities" rows="8" placeholder="Digite as cidades, uma por linha&#10;Ex:&#10;Sarandi&#10;Paiçandu&#10;Doutor Camargo"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="route-frequency">Frequência:</label>
+                            <select id="route-frequency">
+                                <option value="diaria">Diária</option>
+                                <option value="semanal" selected>Semanal</option>
+                                <option value="quinzenal">Quinzenal</option>
+                                <option value="mensal">Mensal</option>
+                            </select>
+                        </div>
+                        <button id="save-route-btn" class="btn btn-success">
+                            <i class="fas fa-save"></i> Salvar Rota
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab: Saved Routes -->
+                <div class="tab-content" id="saved-routes">
+                    <div class="saved-routes-section">
+                        <h3>Rotas Salvas</h3>
+                        <div id="saved-routes-list">
+                            <!-- Rotas salvas serão carregadas aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="map-controls">
+                    <button id="clear-map" class="btn btn-secondary">
+                        <i class="fas fa-trash"></i> Limpar Mapa
+                    </button>
+                    <button id="fit-bounds" class="btn btn-secondary">
+                        <i class="fas fa-expand"></i> Ajustar Visualização
+                    </button>
+                    <button id="toggle-numbers" class="btn btn-secondary">
+                        <i class="fas fa-sort-numeric-up"></i> Mostrar Números
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-panel" id="results-panel">
+            <div class="results-header">
+                <h3>Resultado da Otimização</h3>
+                <button id="close-results" class="btn btn-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="results-content" id="results-content">
+                <!-- Resultados serão exibidos aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

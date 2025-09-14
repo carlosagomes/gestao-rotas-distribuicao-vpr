@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  roteiro-service:
+    build: .
+    container_name: roteiro-container
+    ports:
+      - "3000:3000"
+    environment:
+      ORS_KEY: "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjQ4M2Y4YzE1YzQwNTRhMGRhYWQ0NzcxMmJmZTgzMDdmIiwiaCI6Im11cm11cjY0In0="
+    volumes:
+      - .:/app   # monta o diretório local dentro do container
+      - /app/node_modules   # 👈 preserva node_modules do container
+    command: ["npm", "start"]
