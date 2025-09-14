@@ -1,6 +1,146 @@
 // Dados dos municípios do Paraná (carregados do servidor)
 let municipiosPR = [];
 
+// Grupos de cidades para seleção rápida
+const cityGroups = {
+    principais: [
+        "CURITIBA", "LONDRINA", "MARINGÁ", "PONTA GROSSA", "CASCÁVEL",
+        "SÃO JOSÉ DOS PINHAIS", "FOZ DO IGUAÇU", "COLOMBO", "GUARAPUAVA", "PARANAGUÁ",
+        "ARAPONGAS", "APUCARANA", "CAMPO LARGO", "CASTRO", "FRANCISCO BELTRÃO",
+        "PARANAVAÍ", "TOLEDO", "UMUARAMA", "UNIÃO DA VITÓRIA", "PATO BRANCO"
+    ],
+    norte: [
+        "APUCARANA", "ARAPONGAS", "ASTORGA", "BANDEIRANTES", "BARBOSA FERRAZ",
+        "BOM SUCESSO", "BORRAZÓPOLIS", "CALDAS", "CAMBARÁ", "CAMBIRA",
+        "CARLÓPOLIS", "CORNÉLIO PROCÓPIO", "CRUZ MACHADO", "FAXINAL", "FIGUEIRA",
+        "GODOY MOREIRA", "GUARACI", "IBIPORÃ", "JAGUAPITÃ", "JANDAIA DO SUL",
+        "KALORÉ", "LONDRINA", "MARILÂNDIA DO SUL", "MARINGÁ", "MARILENA",
+        "MARILUZ", "MARIÓPOLIS", "MARIPÁ", "MARMELEIRO", "MARQUINHO",
+        "MARUMBI", "MATELÂNDIA", "MAUÁ DA SERRA", "MERCEDES", "MIRASELVA",
+        "MOREIRA SALES", "MUNHOZ DE MELO", "NOVA ALIANÇA DO IVAÍ", "NOVA AMÉRICA DA COLINA",
+        "NOVA AURORA", "NOVA CANTU", "NOVA ESPERANÇA", "NOVA FÁTIMA", "NOVA LARANJEIRAS",
+        "NOVA LONDRINA", "NOVA OLÍMPIA", "NOVA PRATA DO IGUAÇU", "NOVA SANTA BÁRBARA",
+        "NOVA SANTA ROSA", "NOVA TEBAS", "NOVO ITACOLOMI", "ORTIGUEIRA", "OURIZONA",
+        "PAIÇANDU", "PALMEIRA", "PALMITAL", "PARANACITY", "PARANAPOEMA",
+        "PARANAVAÍ", "PAULA FREITAS", "PAULO FRONTIN", "PEABIRU", "PEROBAL",
+        "PÉROLA", "PÉROLA D'OESTE", "PINHALÃO", "PIRAÍ DO SUL", "PIRAIAS",
+        "PIRAPOZINHO", "PIRAQUARA", "PITANGA", "PITANGUEIRAS", "PLANALTINA DO PARANÁ",
+        "PLANALTO", "PONTA GROSSA", "PORECATU", "PRESIDENTE CASTELO BRANCO", "PRIMEIRO DE MAIO",
+        "PRUDENTÓPOLIS", "QUARTO CENTENÁRIO", "QUATIGUÁ", "QUATRO BARRAS", "QUATRO PONTES",
+        "QUEDAS DO IGUAÇU", "QUITANDINHA", "RAMILÂNDIA", "RANCHO ALEGRE", "RANCHO ALEGRE D'OESTE",
+        "REALEZA", "REBOUÇAS", "RENASCENÇA", "RESERVA", "RESERVA DO IGUAÇU",
+        "RIBEIRÃO CLARO", "RIBEIRÃO DO PINHAL", "RIO AZUL", "RIO BRANCO DO IVAÍ",
+        "RIO BRANCO DO SUL", "RIO BOM", "RIO NEGRO", "ROLÂNDIA", "RONCADOR",
+        "ROSÁRIO DO IVAÍ", "SABAUDIA", "SALGADO FILHO", "SALTO DO ITARARÉ", "SALTO DO LONTRA",
+        "SANTA AMÉLIA", "SANTA CECÍLIA DO PAVÃO", "SANTA CRUZ DE MONTE CASTELO", "SANTA FÉ",
+        "SANTA HELENA", "SANTA INÊS", "SANTA ISABEL DO IVAÍ", "SANTA IZABEL DO OESTE",
+        "SANTA LÚCIA", "SANTA MARIA DO OESTE", "SANTA MARIANA", "SANTA MÔNICA",
+        "SANTA TEREZA DO OESTE", "SANTA TEREZINHA DE ITAIPU", "SANTANA DO ITARARÉ",
+        "SANTO ANTONIO DA PLATINA", "SANTO ANTONIO DO CAIUÁ", "SANTO ANTONIO DO PARAÍSO",
+        "SANTO ANTONIO DO SUDOESTE", "SANTO INÁCIO", "SÃO CARLOS DO IVAÍ",
+        "SÃO JERÔNIMO DA SERRA", "SÃO JOÃO", "SÃO JOÃO DO CAIUÁ", "SÃO JOÃO DO IVAÍ",
+        "SÃO JOÃO DO TRIUNFO", "SÃO JORGE D'OESTE", "SÃO JORGE DO IVAÍ",
+        "SÃO JORGE DO PATROCÍNIO", "SÃO JOSÉ DA BOA VISTA", "SÃO JOSÉ DAS PALMEIRAS",
+        "SÃO JOSÉ DO PIAUÍ", "SÃO MANOEL DO PARANÁ", "SÃO MATEUS DO SUL",
+        "SÃO MIGUEL DO IGUAÇU", "SÃO PEDRO DO IGUAÇU", "SÃO PEDRO DO IVAÍ",
+        "SÃO PEDRO DO PARANÁ", "SÃO SEBASTIÃO DA AMOREIRA", "SÃO TOMÉ", "SAPOPEMA",
+        "SARANDI", "SENGÉS", "SERRANÓPOLIS DO IGUAÇU", "SERTANEJA", "SERTANÓPOLIS",
+        "SIQUEIRA CAMPOS", "SULINA", "TAMARANA", "TAMBOARA", "TAPEJARA",
+        "TAPIRA", "TEIXEIRA SOARES", "TELÊMACO BORBA", "TERRA BOA", "TERRA RICA",
+        "TERRA ROXA", "TIBAGI", "TIJUCAS DO SUL", "TOLEDO", "TOMAZINA",
+        "TRÊS BARRAS DO PARANÁ", "TUNAS DO PARANÁ", "TUNEIRAS DO OESTE",
+        "TUPÃSSI", "TURVO", "UBIRATÃ", "UMUARAMA", "UNIÃO DA VITÓRIA",
+        "UNIFLOR", "URAÍ", "VALE DO SOL", "VALINHOS", "VASSOURAS",
+        "VERÊ", "VILA ALTA", "VIRMOND", "VITORINO", "WENCESLAU BRAZ", "XAMBRÊ"
+    ],
+    oeste: [
+        "CASCAVEL", "FOZ DO IGUAÇU", "TOLEDO", "FRANCISCO BELTRÃO", "PATOS BRANCO",
+        "MEDIANEIRA", "SANTA TEREZINHA DE ITAIPU", "MISSAL", "SÃO MIGUEL DO IGUAÇU",
+        "SANTA HELENA", "MATELÂNDIA", "MARECHAL CÂNDIDO RONDON", "PALOTINA",
+        "TERRA ROXA", "QUEDAS DO IGUAÇU", "LARANJEIRAS DO SUL", "CHOPINZINHO",
+        "CORBELO", "VERÊ", "SALTO DO LONTRA", "BOM SUCESSO DO SUL", "DOIS VIZINHOS",
+        "SANTA TEREZA DO OESTE", "DIAMANTE DO SUL", "DIAMANTE D'OESTE", "DIAMANTE DO NORTE",
+        "SANTA ISABEL DO OESTE", "SANTA LÚCIA", "SANTA MARIA DO OESTE", "SANTA MARIANA",
+        "SANTA MÔNICA", "SANTA TEREZA DO OESTE", "SANTA TEREZINHA DE ITAIPU",
+        "SÃO JORGE D'OESTE", "SÃO JORGE DO PATROCÍNIO", "SÃO JOSÉ DA BOA VISTA",
+        "SÃO JOSÉ DAS PALMEIRAS", "SÃO JOSÉ DO PIAUÍ", "SÃO MANOEL DO PARANÁ",
+        "SÃO MATEUS DO SUL", "SÃO MIGUEL DO IGUAÇU", "SÃO PEDRO DO IGUAÇU",
+        "SERRANÓPOLIS DO IGUAÇU", "TUNEIRAS DO OESTE", "TUPÃSSI", "TURVO"
+    ],
+    sul: [
+        "CURITIBA", "SÃO JOSÉ DOS PINHAIS", "COLOMBO", "PONTA GROSSA", "CAMPO LARGO",
+        "ARAUCÁRIA", "FAZENDA RIO GRANDE", "PINHAIS", "PIRAIAS", "PIRAQUARA",
+        "QUATRO BARRAS", "ALMIRANTE TAMANDARÉ", "BOCAIÚVA DO SUL", "CAMPINA GRANDE DO SUL",
+        "CAMPO DO TENENTE", "CAMPO MOURÃO", "CÂNDIDO DE ABREU", "CARAMBEÍ",
+        "CASTRO", "CERRO AZUL", "CÉU AZUL", "CONGONHINHAS", "CONSELHEIRO MAIRINCK",
+        "CONTENDA", "CURIUVA", "DOIS VIZINHOS", "FERNANDES PINHEIRO", "FIGUEIRA",
+        "GENERAL CARNEIRO", "GUAMIRANGA", "GUAPIRAMA", "GUAPOREMA", "GUARANIAÇU",
+        "GUARATUBA", "HONÓRIO SERPA", "IBAITI", "IBEMA", "IGUARAÇU",
+        "IGUATU", "IMBAÚ", "IMBITUVA", "INÁCIO MARTINS", "INAJÁ",
+        "INDIANÓPOLIS", "IPIRANGA", "IPORÃ", "IRACEMA DO OESTE", "IRATI",
+        "IRETAMA", "ITAGUAJÉ", "ITAIPULÂNDIA", "ITAMBARACÁ", "ITAMBÉ",
+        "ITAPEJARA D'OESTE", "ITAPERUÇU", "ITAÚNA DO SUL", "IVAÍ", "IVAIPORÃ",
+        "IVATÉ", "IVATUBA", "JABOTI", "JACAREZINHO", "JAGUARIAÍVA",
+        "JANIÓPOLIS", "JAPIRA", "JAPURÁ", "JARDIM ALEGRE", "JARDIM OLINDA",
+        "JATAIZINHO", "JESUÍTAS", "JOAQUIM TÁVORA", "JUNDIAÍ DO SUL", "JURANDA",
+        "JUSSARA", "LAPA", "LARANJAL", "LINDOESTE", "LOANDA",
+        "LOBATO", "LUIZIANA", "LUNARDELLI", "LUPIONÓPOLIS", "MALLET",
+        "MAMBORÊ", "MANDAGUAÇU", "MANDAGUARI", "MANDIRITUBA", "MANFRINÓPOLIS",
+        "MANGUEIRINHA", "MANOEL RIBAS", "MARIA HELENA", "MARIALVA", "MARILÂNDIA DO SUL",
+        "MARILENA", "MARILUZ", "MARIÓPOLIS", "MARIPÁ", "MARMELEIRO",
+        "MARQUINHO", "MARUMBI", "MATO RICO", "MAUÁ DA SERRA", "MERCEDES",
+        "MIRADOR", "MIRASELVA", "MISSAL", "MOREIRA SALES", "MORRETES",
+        "MUNHOZ DE MELO", "NOSSA SENHORA DAS GRAÇAS", "NOVA ALIANÇA DO IVAÍ",
+        "NOVA AMÉRICA DA COLINA", "NOVA AURORA", "NOVA CANTU", "NOVA ESPERANÇA",
+        "NOVA ESPERANÇA DO SUDOESTE", "NOVA FÁTIMA", "NOVA LARANJEIRAS", "NOVA LONDRINA",
+        "NOVA OLÍMPIA", "NOVA PRATA DO IGUAÇU", "NOVA SANTA BÁRBARA", "NOVA SANTA ROSA",
+        "NOVA TEBAS", "NOVO ITACOLOMI", "ORTIGUEIRA", "OURIZONA", "OURO VERDE DO OESTE",
+        "PAIÇANDU", "PALMAS", "PALMEIRA", "PALMITAL", "PALOTINA",
+        "PARANACITY", "PARANAGUÁ", "PARANAPOEMA", "PARANAVAÍ", "PATO BRAGADO",
+        "PATO BRANCO", "PAULA FREITAS", "PAULO FRONTIN", "PEABIRU", "PEROBAL",
+        "PÉROLA", "PÉROLA D'OESTE", "PIÊN", "PINHAIS", "PINHAL DE SÃO BENTO",
+        "PINHALÃO", "PINHÃO", "PIRAÍ DO SUL", "PIRAIAS", "PIRAPOZINHO",
+        "PIRAQUARA", "PITANGA", "PITANGUEIRAS", "PLANALTINA DO PARANÁ", "PLANALTO",
+        "PONTA GROSSA", "PONTAL DO PARANÁ", "PORECATU", "PORTO AMAZONAS",
+        "PORTO BARREIRO", "PORTO RICO", "PORTO VITÓRIA", "PRADO FERREIRA",
+        "PRANCHITA", "PRESIDENTE CASTELO BRANCO", "PRIMEIRO DE MAIO", "PRUDENTÓPOLIS",
+        "QUARTO CENTENÁRIO", "QUATIGUÁ", "QUATRO BARRAS", "QUATRO PONTES",
+        "QUEDAS DO IGUAÇU", "QUERÊNCIA DO NORTE", "QUINTA DO SOL", "QUITANDINHA",
+        "RAMILÂNDIA", "RANCHO ALEGRE", "RANCHO ALEGRE D'OESTE", "REALEZA",
+        "REBOUÇAS", "RENASCENÇA", "RESERVA", "RESERVA DO IGUAÇU", "RIBEIRÃO CLARO",
+        "RIBEIRÃO DO PINHAL", "RIO AZUL", "RIO BRANCO DO IVAÍ", "RIO BRANCO DO SUL",
+        "RIO BOM", "RIO NEGRO", "ROLÂNDIA", "RONCADOR", "ROSÁRIO DO IVAÍ",
+        "SABAUDIA", "SALGADO FILHO", "SALTO DO ITARARÉ", "SALTO DO LONTRA",
+        "SANTA AMÉLIA", "SANTA CECÍLIA DO PAVÃO", "SANTA CRUZ DE MONTE CASTELO",
+        "SANTA FÉ", "SANTA HELENA", "SANTA INÊS", "SANTA ISABEL DO IVAÍ",
+        "SANTA IZABEL DO OESTE", "SANTA LÚCIA", "SANTA MARIA DO OESTE",
+        "SANTA MARIANA", "SANTA MÔNICA", "SANTA TEREZA DO OESTE",
+        "SANTA TEREZINHA DE ITAIPU", "SANTANA DO ITARARÉ", "SANTO ANTONIO DA PLATINA",
+        "SANTO ANTONIO DO CAIUÁ", "SANTO ANTONIO DO PARAÍSO", "SANTO ANTONIO DO SUDOESTE",
+        "SANTO INÁCIO", "SÃO CARLOS DO IVAÍ", "SÃO JERÔNIMO DA SERRA", "SÃO JOÃO",
+        "SÃO JOÃO DO CAIUÁ", "SÃO JOÃO DO IVAÍ", "SÃO JOÃO DO TRIUNFO",
+        "SÃO JORGE D'OESTE", "SÃO JORGE DO IVAÍ", "SÃO JORGE DO PATROCÍNIO",
+        "SÃO JOSÉ DA BOA VISTA", "SÃO JOSÉ DAS PALMEIRAS", "SÃO JOSÉ DO PIAUÍ",
+        "SÃO MANOEL DO PARANÁ", "SÃO MATEUS DO SUL", "SÃO MIGUEL DO IGUAÇU",
+        "SÃO PEDRO DO IGUAÇU", "SÃO PEDRO DO IVAÍ", "SÃO PEDRO DO PARANÁ",
+        "SÃO SEBASTIÃO DA AMOREIRA", "SÃO TOMÉ", "SAPOPEMA", "SARANDI", "SENGÉS",
+        "SERRANÓPOLIS DO IGUAÇU", "SERTANEJA", "SERTANÓPOLIS", "SIQUEIRA CAMPOS",
+        "SULINA", "TAMARANA", "TAMBOARA", "TAPEJARA", "TAPIRA",
+        "TEIXEIRA SOARES", "TELÊMACO BORBA", "TERRA BOA", "TERRA RICA", "TERRA ROXA",
+        "TIBAGI", "TIJUCAS DO SUL", "TOLEDO", "TOMAZINA", "TRÊS BARRAS DO PARANÁ",
+        "TUNAS DO PARANÁ", "TUNEIRAS DO OESTE", "TUPÃSSI", "TURVO", "UBIRATÃ",
+        "UMUARAMA", "UNIÃO DA VITÓRIA", "UNIFLOR", "URAÍ", "VALE DO SOL",
+        "VALINHOS", "VASSOURAS", "VERÊ", "VILA ALTA", "VIRMOND",
+        "VITORINO", "WENCESLAU BRAZ", "XAMBRÊ"
+    ],
+    litoral: [
+        "PARANAGUÁ", "GUARATUBA", "MATINHOS", "PONTAL DO PARANÁ", "ANTONINA",
+        "MORRETES", "GUARAQUEÇABA", "CERRO AZUL", "ADRIANÓPOLIS", "BOCAIÚVA DO SUL",
+        "CAMPINA GRANDE DO SUL", "CERRO AZUL", "COLOMBO", "CURITIBA", "PINHAIS",
+        "PIRAIAS", "PIRAQUARA", "QUATRO BARRAS", "SÃO JOSÉ DOS PINHAIS", "TUNAS DO PARANÁ"
+    ]
+};
+
 class RouteManager {
     constructor() {
         this.map = null;
@@ -11,6 +151,13 @@ class RouteManager {
         this.showNumbers = true; // Por padrão, mostrar números
         this.useRealRoute = true; // Por padrão, usar rota real
         this.currentRoute = null; // Armazenar rota atual para re-renderizar
+        this.optimizedRoute = null; // Armazenar rota otimizada para navegação externa
+        this.filteredCities = []; // Cidades filtradas
+        this.currentFilters = {
+            search: '',
+            region: '',
+            alphabet: ''
+        };
         this.init();
     }
 
@@ -109,6 +256,51 @@ class RouteManager {
         // Botão de alternar tipo de rota
         document.getElementById('toggle-route-type').addEventListener('click', () => {
             this.toggleRouteType();
+        });
+
+        // Filtros de cidades
+        document.getElementById('city-search').addEventListener('input', (e) => {
+            this.currentFilters.search = e.target.value.toLowerCase();
+            this.applyFilters();
+        });
+
+        document.getElementById('region-filter').addEventListener('change', (e) => {
+            this.currentFilters.region = e.target.value;
+            this.applyFilters();
+        });
+
+        document.getElementById('alphabet-filter').addEventListener('change', (e) => {
+            this.currentFilters.alphabet = e.target.value;
+            this.applyFilters();
+        });
+
+        // Botões de seleção rápida
+        document.getElementById('select-visible-cities').addEventListener('click', () => {
+            this.selectVisibleCities();
+        });
+
+        document.getElementById('clear-filters').addEventListener('click', () => {
+            this.clearFilters();
+        });
+
+        // Grupos rápidos
+        document.querySelectorAll('.quick-group-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.selectQuickGroup(e.target.dataset.group);
+            });
+        });
+
+        // Botões de navegação externa
+        document.getElementById('open-google-maps').addEventListener('click', () => {
+            this.openInGoogleMaps();
+        });
+
+        document.getElementById('open-waze').addEventListener('click', () => {
+            this.openInWaze();
+        });
+
+        document.getElementById('copy-route-link').addEventListener('click', () => {
+            this.copyRouteLink();
         });
     }
 
@@ -282,13 +474,24 @@ class RouteManager {
     }
 
     loadCities() {
+        this.filteredCities = [...municipiosPR];
+        this.renderCities();
+    }
+
+    renderCities() {
         const citiesGrid = document.getElementById('cities-grid');
         citiesGrid.innerHTML = '';
 
-        municipiosPR.forEach(city => {
+        this.filteredCities.forEach(city => {
             const cityItem = document.createElement('div');
             cityItem.className = 'city-item';
             cityItem.textContent = city;
+            
+            // Destacar se selecionada
+            if (this.selectedCities.has(city)) {
+                cityItem.classList.add('selected');
+            }
+            
             cityItem.addEventListener('click', () => {
                 this.toggleCitySelection(city, cityItem);
             });
@@ -312,6 +515,100 @@ class RouteManager {
         
         // Atualizar contador
         this.updateCityCounter();
+    }
+
+    applyFilters() {
+        this.filteredCities = municipiosPR.filter(city => {
+            const cityLower = city.toLowerCase();
+            
+            // Filtro de busca
+            if (this.currentFilters.search && !cityLower.includes(this.currentFilters.search)) {
+                return false;
+            }
+            
+            // Filtro de região (simplificado)
+            if (this.currentFilters.region) {
+                const regionGroups = {
+                    'metropolitana': ['CURITIBA', 'SÃO JOSÉ DOS PINHAIS', 'COLOMBO', 'PONTA GROSSA', 'CAMPO LARGO', 'ARAUCÁRIA', 'FAZENDA RIO GRANDE', 'PINHAIS', 'PIRAIAS', 'PIRAQUARA', 'QUATRO BARRAS', 'ALMIRANTE TAMANDARÉ'],
+                    'norte': ['LONDRINA', 'MARINGÁ', 'APUCARANA', 'ARAPONGAS', 'PONTA GROSSA', 'CASTRO', 'PARANAVAÍ', 'UMUARAMA', 'UNIÃO DA VITÓRIA', 'PATO BRANCO'],
+                    'noroeste': ['CASCAVEL', 'FOZ DO IGUAÇU', 'TOLEDO', 'FRANCISCO BELTRÃO', 'MEDIANEIRA', 'SANTA TEREZINHA DE ITAIPU', 'MISSAL', 'SÃO MIGUEL DO IGUAÇU'],
+                    'oeste': ['CASCAVEL', 'FOZ DO IGUAÇU', 'TOLEDO', 'FRANCISCO BELTRÃO', 'MEDIANEIRA', 'SANTA TEREZINHA DE ITAIPU', 'MISSAL', 'SÃO MIGUEL DO IGUAÇU'],
+                    'sul': ['CURITIBA', 'SÃO JOSÉ DOS PINHAIS', 'COLOMBO', 'PONTA GROSSA', 'CAMPO LARGO', 'ARAUCÁRIA', 'FAZENDA RIO GRANDE', 'PINHAIS', 'PIRAIAS', 'PIRAQUARA'],
+                    'sudeste': ['CURITIBA', 'SÃO JOSÉ DOS PINHAIS', 'COLOMBO', 'PONTA GROSSA', 'CAMPO LARGO', 'ARAUCÁRIA', 'FAZENDA RIO GRANDE', 'PINHAIS', 'PIRAIAS', 'PIRAQUARA'],
+                    'centro': ['CURITIBA', 'SÃO JOSÉ DOS PINHAIS', 'COLOMBO', 'PONTA GROSSA', 'CAMPO LARGO', 'ARAUCÁRIA', 'FAZENDA RIO GRANDE', 'PINHAIS', 'PIRAIAS', 'PIRAQUARA']
+                };
+                
+                if (regionGroups[this.currentFilters.region] && !regionGroups[this.currentFilters.region].includes(city)) {
+                    return false;
+                }
+            }
+            
+            // Filtro alfabético
+            if (this.currentFilters.alphabet && !city.startsWith(this.currentFilters.alphabet)) {
+                return false;
+            }
+            
+            return true;
+        });
+        
+        this.renderCities();
+    }
+
+    selectVisibleCities() {
+        const maxCities = Math.min(20, this.filteredCities.length);
+        let selected = 0;
+        
+        this.filteredCities.forEach(city => {
+            if (selected < maxCities && !this.selectedCities.has(city)) {
+                this.selectedCities.add(city);
+                selected++;
+            }
+        });
+        
+        this.updateCityCounter();
+        this.renderCities();
+    }
+
+    clearFilters() {
+        this.currentFilters = {
+            search: '',
+            region: '',
+            alphabet: ''
+        };
+        
+        // Limpar campos
+        document.getElementById('city-search').value = '';
+        document.getElementById('region-filter').value = '';
+        document.getElementById('alphabet-filter').value = '';
+        
+        this.applyFilters();
+    }
+
+    selectQuickGroup(groupName) {
+        if (cityGroups[groupName]) {
+            const groupCities = cityGroups[groupName];
+            const maxCities = Math.min(20, groupCities.length);
+            let selected = 0;
+            
+            // Limpar seleções atuais
+            this.selectedCities.clear();
+            
+            groupCities.forEach(city => {
+                if (selected < maxCities && municipiosPR.includes(city)) {
+                    this.selectedCities.add(city);
+                    selected++;
+                }
+            });
+            
+            this.updateCityCounter();
+            this.renderCities();
+            
+            // Destacar botão do grupo
+            document.querySelectorAll('.quick-group-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-group="${groupName}"]`).classList.add('active');
+        }
     }
 
     updateCityCounter() {
@@ -413,7 +710,9 @@ class RouteManager {
             if (response.ok) {
                 this.displayResults(result);
                 this.currentRoute = result; // Armazenar rota atual
+                this.optimizedRoute = result; // Armazenar rota otimizada para navegação externa
                 await this.displayRouteOnMap(result);
+                this.showExternalNavButtons(); // Mostrar botões de navegação externa
             } else {
                 if (response.status === 429) {
                     alert('Muitas requisições simultâneas. Aguarde alguns segundos e tente novamente com menos cidades.');
@@ -947,6 +1246,143 @@ class RouteManager {
                 console.error('Erro:', error);
                 alert('Erro ao excluir rota');
             }
+        }
+    }
+
+    showExternalNavButtons() {
+        const externalNavSection = document.getElementById('external-nav-section');
+        if (externalNavSection) {
+            externalNavSection.style.display = 'block';
+        }
+    }
+
+    hideExternalNavButtons() {
+        const externalNavSection = document.getElementById('external-nav-section');
+        if (externalNavSection) {
+            externalNavSection.style.display = 'none';
+        }
+    }
+
+    openInGoogleMaps() {
+        if (!this.optimizedRoute) {
+            alert('Nenhuma rota otimizada disponível');
+            return;
+        }
+
+        try {
+            const waypoints = this.optimizedRoute.roteiro || [];
+            const origem = this.optimizedRoute.origem;
+            const destino = this.optimizedRoute.destino;
+
+            if (!origem || !destino) {
+                alert('Dados de origem ou destino não disponíveis');
+                return;
+            }
+
+            // Construir URL do Google Maps
+            let googleMapsUrl = `https://www.google.com/maps/dir/`;
+            
+            // Adicionar origem
+            googleMapsUrl += `${origem.lat},${origem.lng}/`;
+            
+            // Adicionar waypoints (paradas)
+            waypoints.forEach(city => {
+                if (city !== 'ORIGEM' && city !== 'DESTINO') {
+                    // Para waypoints, usar o formato de parada
+                    googleMapsUrl += `/${city}, Paraná, Brasil/`;
+                }
+            });
+            
+            // Adicionar destino
+            googleMapsUrl += `${destino.lat},${destino.lng}/`;
+
+            // Abrir em nova aba
+            window.open(googleMapsUrl, '_blank');
+        } catch (error) {
+            console.error('Erro ao abrir no Google Maps:', error);
+            alert('Erro ao abrir no Google Maps');
+        }
+    }
+
+    openInWaze() {
+        if (!this.optimizedRoute) {
+            alert('Nenhuma rota otimizada disponível');
+            return;
+        }
+
+        try {
+            const origem = this.optimizedRoute.origem;
+            const destino = this.optimizedRoute.destino;
+
+            if (!origem || !destino) {
+                alert('Dados de origem ou destino não disponíveis');
+                return;
+            }
+
+            // Construir URL do Waze
+            // Waze usa formato: waze://ul?ll=lat,lng&navigate=yes
+            // Para múltiplas paradas, usar o formato de navegação
+            let wazeUrl = `https://waze.com/ul?ll=${destino.lat},${destino.lng}&navigate=yes`;
+            
+            // Abrir em nova aba
+            window.open(wazeUrl, '_blank');
+        } catch (error) {
+            console.error('Erro ao abrir no Waze:', error);
+            alert('Erro ao abrir no Waze');
+        }
+    }
+
+    async copyRouteLink() {
+        if (!this.optimizedRoute) {
+            alert('Nenhuma rota otimizada disponível');
+            return;
+        }
+
+        try {
+            const waypoints = this.optimizedRoute.roteiro || [];
+            const origem = this.optimizedRoute.origem;
+            const destino = this.optimizedRoute.destino;
+
+            if (!origem || !destino) {
+                alert('Dados de origem ou destino não disponíveis');
+                return;
+            }
+
+            // Construir texto da rota
+            let routeText = `🚛 ROTA OTIMIZADA\n\n`;
+            routeText += `📍 Origem: ${origem.name}\n`;
+            routeText += `🏁 Destino: ${destino.name}\n\n`;
+            
+            if (waypoints.length > 0) {
+                routeText += `🛣️ Paradas:\n`;
+                waypoints.forEach((city, index) => {
+                    if (city !== 'ORIGEM' && city !== 'DESTINO') {
+                        routeText += `${index + 1}. ${city}\n`;
+                    }
+                });
+            }
+            
+            routeText += `\n📊 Distância: ${this.optimizedRoute.distancia_km ? this.optimizedRoute.distancia_km.toFixed(1) + ' km' : 'N/A'}\n`;
+            routeText += `⏱️ Duração: ${this.optimizedRoute.duracao_min ? Math.round(this.optimizedRoute.duracao_min) + ' min' : 'N/A'}\n`;
+            routeText += `\n🗓️ Gerado em: ${new Date().toLocaleString('pt-BR')}`;
+
+            // Copiar para área de transferência
+            await navigator.clipboard.writeText(routeText);
+            
+            // Mostrar feedback visual
+            const copyBtn = document.getElementById('copy-route-link');
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+            copyBtn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+                copyBtn.style.background = 'linear-gradient(135deg, #6c757d, #495057)';
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Erro ao copiar rota:', error);
+            alert('Erro ao copiar rota. Tente novamente.');
         }
     }
 }

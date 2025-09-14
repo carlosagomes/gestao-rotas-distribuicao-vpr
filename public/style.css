@@ -279,17 +279,185 @@ body {
     border: 2px solid #e9ecef;
 }
 
+.city-filters {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-input, .filter-select {
+    padding: 0.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.3s ease;
+}
+
+.filter-input:focus, .filter-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filter-input {
+    background: white;
+}
+
+.filter-select {
+    background: white;
+    cursor: pointer;
+}
+
 .city-controls {
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1rem;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 .btn-small {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
     border-radius: 6px;
+}
+
+.external-nav-section {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.external-nav-section h4 {
+    margin: 0 0 1rem 0;
+    color: #667eea;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.external-nav-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-external {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    min-width: 180px;
+    justify-content: center;
+}
+
+.google-maps-btn {
+    background: linear-gradient(135deg, #4285f4, #34a853);
+    color: white;
+    box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+}
+
+.google-maps-btn:hover {
+    background: linear-gradient(135deg, #3367d6, #2d8f47);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+}
+
+.waze-btn {
+    background: linear-gradient(135deg, #00d4ff, #0099cc);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
+}
+
+.waze-btn:hover {
+    background: linear-gradient(135deg, #00b8e6, #0088b3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+}
+
+.copy-btn {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
+.copy-btn:hover {
+    background: linear-gradient(135deg, #5a6268, #3d4449);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+}
+
+.btn-external:active {
+    transform: translateY(0);
+}
+
+.quick-groups {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.quick-groups h4 {
+    margin: 0 0 0.5rem 0;
+    color: #667eea;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.quick-group-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.quick-group-btn {
+    padding: 0.4rem 0.8rem;
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #667eea;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.quick-group-btn:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+}
+
+.quick-group-btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
 }
 
 .cities-grid {

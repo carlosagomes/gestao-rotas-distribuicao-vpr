@@ -56,9 +56,75 @@
                         </button>
                     </div>
 
+                    <!-- Botões de navegação externa -->
+                    <div class="external-nav-section" id="external-nav-section" style="display: none;">
+                        <h4>Navegação Externa</h4>
+                        <div class="external-nav-buttons">
+                            <button id="open-google-maps" class="btn btn-external google-maps-btn">
+                                <i class="fab fa-google"></i> Abrir no Google Maps
+                            </button>
+                            <button id="open-waze" class="btn btn-external waze-btn">
+                                <i class="fas fa-car"></i> Abrir no Waze
+                            </button>
+                            <button id="copy-route-link" class="btn btn-external copy-btn">
+                                <i class="fas fa-copy"></i> Copiar Link da Rota
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="cities-section">
                         <h3>Cidades do Paraná</h3>
                         <div id="city-counter" class="city-counter">0/20 cidades selecionadas</div>
+                        
+                        <!-- Filtros de busca -->
+                        <div class="city-filters">
+                            <div class="filter-group">
+                                <input type="text" id="city-search" placeholder="🔍 Buscar cidade..." class="filter-input">
+                            </div>
+                            <div class="filter-group">
+                                <select id="region-filter" class="filter-select">
+                                    <option value="">Todas as regiões</option>
+                                    <option value="metropolitana">Região Metropolitana</option>
+                                    <option value="norte">Norte</option>
+                                    <option value="noroeste">Noroeste</option>
+                                    <option value="oeste">Oeste</option>
+                                    <option value="sul">Sul</option>
+                                    <option value="sudeste">Sudeste</option>
+                                    <option value="centro">Centro</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <select id="alphabet-filter" class="filter-select">
+                                    <option value="">Todas as letras</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                    <option value="E">E</option>
+                                    <option value="F">F</option>
+                                    <option value="G">G</option>
+                                    <option value="H">H</option>
+                                    <option value="I">I</option>
+                                    <option value="J">J</option>
+                                    <option value="K">K</option>
+                                    <option value="L">L</option>
+                                    <option value="M">M</option>
+                                    <option value="N">N</option>
+                                    <option value="O">O</option>
+                                    <option value="P">P</option>
+                                    <option value="Q">Q</option>
+                                    <option value="R">R</option>
+                                    <option value="S">S</option>
+                                    <option value="T">T</option>
+                                    <option value="U">U</option>
+                                    <option value="V">V</option>
+                                    <option value="W">W</option>
+                                    <option value="X">X</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Controles de seleção -->
                         <div class="city-controls">
                             <button id="select-all-cities" class="btn btn-secondary btn-small">
                                 <i class="fas fa-check-square"></i> Selecionar Todas
@@ -66,7 +132,36 @@
                             <button id="deselect-all-cities" class="btn btn-secondary btn-small">
                                 <i class="fas fa-square"></i> Desmarcar Todas
                             </button>
+                            <button id="select-visible-cities" class="btn btn-primary btn-small">
+                                <i class="fas fa-eye"></i> Selecionar Visíveis
+                            </button>
+                            <button id="clear-filters" class="btn btn-secondary btn-small">
+                                <i class="fas fa-times"></i> Limpar Filtros
+                            </button>
                         </div>
+
+                        <!-- Grupos rápidos -->
+                        <div class="quick-groups">
+                            <h4>Seleção Rápida:</h4>
+                            <div class="quick-group-buttons">
+                                <button class="quick-group-btn" data-group="principais">
+                                    <i class="fas fa-star"></i> Principais
+                                </button>
+                                <button class="quick-group-btn" data-group="norte">
+                                    <i class="fas fa-map-marker-alt"></i> Norte
+                                </button>
+                                <button class="quick-group-btn" data-group="oeste">
+                                    <i class="fas fa-map-marker-alt"></i> Oeste
+                                </button>
+                                <button class="quick-group-btn" data-group="sul">
+                                    <i class="fas fa-map-marker-alt"></i> Sul
+                                </button>
+                                <button class="quick-group-btn" data-group="litoral">
+                                    <i class="fas fa-water"></i> Litoral
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="cities-grid" id="cities-grid">
                             <!-- Cidades serão carregadas dinamicamente -->
                         </div>
