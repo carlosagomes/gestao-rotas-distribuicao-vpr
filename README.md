@@ -178,6 +178,45 @@ O sistema inclui todos os 67 municípios do Paraná fornecidos:
 - [ ] Notificações em tempo real
 - [ ] API de terceiros para dados de tráfego
 
+## 🌐 Deploy em Produção
+
+### Opção 1: Vercel (Recomendado) ⭐
+1. **Conecte seu GitHub** ao [Vercel](https://vercel.com)
+2. **Importe o repositório** do projeto
+3. **Configure a variável de ambiente:**
+   - `ORS_KEY` = sua chave da API OpenRouteService
+4. **Deploy automático** em segundos!
+
+**URL de exemplo:** `https://gestao-rotas-vpr.vercel.app`
+
+### Opção 2: Railway
+1. **Conecte GitHub** ao [Railway](https://railway.app)
+2. **Selecione o projeto**
+3. **Configure ORS_KEY** nas variáveis de ambiente
+4. **Deploy instantâneo**
+
+### Opção 3: Render
+1. **Conecte GitHub** ao [Render](https://render.com)
+2. **Crie novo Web Service**
+3. **Configure ORS_KEY** nas variáveis
+4. **Deploy automático**
+
+### Obter Chave da API
+1. Acesse: https://openrouteservice.org/dev/#/signup
+2. **Crie uma conta gratuita**
+3. **Copie sua chave API**
+4. **Configure nas variáveis de ambiente** da plataforma escolhida
+
+### Configuração de Variáveis
+```bash
+# Variável obrigatória
+ORS_KEY=sua_chave_da_api_openrouteservice
+
+# Opcionais
+PORT=3000
+NODE_ENV=production
+```
+
 ## 📝 Licença
 
 Este projeto foi desenvolvido para a VPR como sistema interno de roteirização.
