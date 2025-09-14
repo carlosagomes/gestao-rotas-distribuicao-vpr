@@ -164,7 +164,7 @@ rotas/
 5. **Resultado**: Rota otimizada com distância e duração calculadas
 
 ### Dados de Exemplo
-O sistema inclui todos os 67 municípios do Paraná fornecidos:
+O sistema inclui 390 municípios do Paraná (dos 399 existentes no estado):
 - TERRA RICA, TAMBOARA, SARANDI, etc.
 - Geocoding automático para posicionamento no mapa
 - Integração com API de otimização de rotas
